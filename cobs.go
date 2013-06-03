@@ -135,7 +135,7 @@ func Decode(src []byte) (dst []byte) {
 			dst = append(dst, src[ptr])
 			ptr++
 		}
-		if code < 0xff {
+		if code < 0xFF {
 			dst = append(dst, 0)
 		}
 	}
