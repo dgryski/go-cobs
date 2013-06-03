@@ -81,6 +81,15 @@ func TestCobsQuick(t *testing.T) {
 	}
 
 	quick.Check(f, nil)
+
+	b := make([]byte, 512)
+	for i := 0; i < len(b); i++ {
+		b[i] = 0x11
+	}
+
+	if !f(b) {
+		t.Errorf("quick test failed for 0x11...\n")
+	}
 }
 
 func TestCobsZPEQuick(t *testing.T) {
@@ -92,4 +101,14 @@ func TestCobsZPEQuick(t *testing.T) {
 	}
 
 	quick.Check(f, nil)
+
+	b := make([]byte, 512)
+	for i := 0; i < len(b); i++ {
+		b[i] = 0x11
+	}
+
+	if !f(b) {
+		t.Errorf("quick test failed for zpe 0x11...\n")
+	}
+
 }
