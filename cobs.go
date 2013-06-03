@@ -68,7 +68,8 @@ func EncodeZPE(src []byte) (dst []byte) {
 			wantPair = false // only valid for next byte
 			if b == 0 {
 				// assert code < 31
-				dst[code_ptr] = code | 0xE0
+				code |= 0xE0
+				dst[code_ptr] = code
 				code_ptr = len(dst)
 				dst = append(dst, 0)
 				code = byte(0x01)
