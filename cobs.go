@@ -114,11 +114,9 @@ func EncodeZPE(src []byte) (dst []byte) {
 	if wantPair {
 		// assert(code < 31)
 		code = 0xE0 | code
-		dst[code_ptr] = code
-	} else {
-		dst[code_ptr] = code
 	}
 
+	dst[code_ptr] = code
 	return dst
 }
 
