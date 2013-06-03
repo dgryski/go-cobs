@@ -36,7 +36,8 @@ func Encode(src []byte) (dst []byte) {
 		code++
 		if code == 0xff {
 			dst[code_ptr] = code
-			code_ptr = len(dst) - 1
+			code_ptr = len(dst)
+			dst = append(dst, 0)
 			code = byte(0x01)
 		}
 	}
