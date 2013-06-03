@@ -3,7 +3,7 @@
 // References:
 //     https://en.wikipedia.org/wiki/Consistent_Overhead_Byte_Stuffing and
 //     http://conferences.sigcomm.org/sigcomm/1997/papers/p062.pdf
-//     https://tools.ietf.org/html/draft-ietf-pppext-cobs-00
+//     https://tools.ietf.org/html/draft-ietf-pppext-cobs-00 (slightly incompatible encoding)
 package cobs
 
 // TODO(dgryski): fix api to allow passing in decode buffer
