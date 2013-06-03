@@ -12,7 +12,7 @@ func Encode(src []byte) (dst []byte) {
 
 	// guess at how much extra space we need
 	var l int
-	l = int(float64(len(src)) * 1.05)
+	l = int(float64(len(src)) * 1.04)
 
 	if len(src) == 0 {
 		return []byte{}
@@ -50,7 +50,7 @@ func Encode(src []byte) (dst []byte) {
 func EncodeZPE(src []byte) (dst []byte) {
 
 	// guess at how much extra space we need
-	l := int(float64(len(src)) * 1.05)
+	l := int(float64(len(src)) * 1.045)
 
 	if len(src) == 0 {
 		return []byte{}
