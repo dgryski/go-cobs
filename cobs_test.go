@@ -81,15 +81,29 @@ func TestQuick(t *testing.T) {
 	}
 
 	quick.Check(f, nil)
+}
 
-	b := make([]byte, 512)
-	for i := 0; i < len(b); i++ {
-		b[i] = 0x11
+func TestLengths(t *testing.T) {
+	var b []byte
+
+	for i := 0; i < 512; i++ {
+		b = append(b, 0)
+
+		e := Encode(b)
+		o := Decode(e)
+		if !bytes.Equal(b, o) {
+			t.Errorf("length test failed for 0x11 x %d...\n", i)
+		}
+
+		e = EncodeZPE(b)
+		o = DecodeZPE(e)
+		if !bytes.Equal(b, o) {
+			t.Errorf("length test failed for 0x11 x %d...\n", i)
+		}
+
+		b[len(b)-1] = 0x11
 	}
 
-	if !f(b) {
-		t.Errorf("quick test failed for 0x11...\n")
-	}
 }
 
 func TestZPEQuick(t *testing.T) {
@@ -101,14 +115,4 @@ func TestZPEQuick(t *testing.T) {
 	}
 
 	quick.Check(f, nil)
-
-	b := make([]byte, 512)
-	for i := 0; i < len(b); i++ {
-		b[i] = 0x11
-	}
-
-	if !f(b) {
-		t.Errorf("quick test failed for zpe 0x11...\n")
-	}
-
 }
