@@ -72,7 +72,7 @@ func TestEncodeZPE(t *testing.T) {
 	}
 }
 
-func TestCobsQuick(t *testing.T) {
+func TestQuick(t *testing.T) {
 
 	f := func(s []byte) bool {
 		e := Encode(s)
@@ -92,7 +92,7 @@ func TestCobsQuick(t *testing.T) {
 	}
 }
 
-func TestCobsZPEQuick(t *testing.T) {
+func TestZPEQuick(t *testing.T) {
 
 	f := func(s []byte) bool {
 		e := EncodeZPE(s)
