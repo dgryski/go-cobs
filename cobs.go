@@ -8,7 +8,19 @@ package cobs
 
 // TODO(dgryski): fix api to allow passing in decode buffer
 
-func Encode(src []byte) (dst []byte) {
+type Encoder interface {
+	Encode(src []byte) []byte
+	Decode(src []byte) []byte
+}
+
+type encoder int
+
+// New returns a codec for COBS encoding/decoding
+func New() Encoder {
+	return encoder(0)
+}
+
+func (encoder) Encode(src []byte) (dst []byte) {
 
 	// guess at how much extra space we need
 	var l int
@@ -47,7 +59,41 @@ func Encode(src []byte) (dst []byte) {
 	return dst
 }
 
-func EncodeZPE(src []byte) (dst []byte) {
+func (encoder) Decode(src []byte) (dst []byte) {
+
+	dst = make([]byte, 0, len(src))
+
+	var ptr = 0
+
+	for ptr < len(src) {
+		code := src[ptr]
+
+		ptr++
+
+		for i := 1; i < int(code); i++ {
+			dst = append(dst, src[ptr])
+			ptr++
+		}
+		if code < 0xFF {
+			dst = append(dst, 0)
+		}
+	}
+
+	if len(dst) == 0 {
+		return dst
+	}
+
+	return dst[0 : len(dst)-1] // trim phantom zero
+}
+
+type zpe int
+
+// NewZPE returns a codec for COBS/ZPE encoding/decoding
+func NewZPE() Encoder {
+	return zpe(0)
+}
+
+func (zpe) Encode(src []byte) (dst []byte) {
 
 	// guess at how much extra space we need
 	l := int(float64(len(src)) * 1.045)
@@ -121,34 +167,7 @@ func EncodeZPE(src []byte) (dst []byte) {
 	return dst
 }
 
-func Decode(src []byte) (dst []byte) {
-
-	dst = make([]byte, 0, len(src))
-
-	var ptr = 0
-
-	for ptr < len(src) {
-		code := src[ptr]
-
-		ptr++
-
-		for i := 1; i < int(code); i++ {
-			dst = append(dst, src[ptr])
-			ptr++
-		}
-		if code < 0xFF {
-			dst = append(dst, 0)
-		}
-	}
-
-	if len(dst) == 0 {
-		return dst
-	}
-
-	return dst[0 : len(dst)-1] // trim phantom zero
-}
-
-func DecodeZPE(src []byte) (dst []byte) {
+func (zpe) Decode(src []byte) (dst []byte) {
 
 	dst = make([]byte, 0, len(src))
 
@@ -188,3 +207,15 @@ func DecodeZPE(src []byte) (dst []byte) {
 
 	return dst[0 : len(dst)-1] // trim phantom zero
 }
+
+// Encode a byte slice with COBS
+func Encode(src []byte) []byte { return encoder(0).Encode(src) }
+
+// Decode a COBS-encoded byte slice
+func Decode(src []byte) []byte { return encoder(0).Decode(src) }
+
+// Encode a byte slice with COBS/ZPE
+func EncodeZPE(src []byte) []byte { return zpe(0).Encode(src) }
+
+// Decode a COBS/ZPE-encoded byte slice
+func DecodeZPE(src []byte) []byte { return zpe(0).Decode(src) }
