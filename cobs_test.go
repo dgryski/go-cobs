@@ -67,6 +67,12 @@ func TestCOBSZPE(t *testing.T) {
 func testQuick(t *testing.T, codec Encoder) {
 	f := func(s []byte) bool {
 		e := codec.Encode(s)
+		// make sure there are no 0 bytes in the encoded data
+		for i, l := 0, len(e); i < l; i++ {
+			if e[i] == 0 {
+				return false
+			}
+		}
 		o := codec.Decode(e)
 		return bytes.Equal(s, o)
 	}
