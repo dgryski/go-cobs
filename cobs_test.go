@@ -19,8 +19,8 @@ func testEncodeDecode(t *testing.T, codec Encoder, tests []inputOutput) {
 			t.Errorf("encode failed: got % 02x wanted % 02x\n", o, tst.out)
 		}
 
-		o = codec.Decode(o)
-		if !bytes.Equal(o, tst.in) {
+		o, err := codec.Decode(o)
+		if err != nil || !bytes.Equal(o, tst.in) {
 			t.Errorf("decode failed: got % 02x wanted % 02x\n", o, tst.in)
 		}
 	}
@@ -73,8 +73,8 @@ func testQuick(t *testing.T, codec Encoder) {
 				return false
 			}
 		}
-		o := codec.Decode(e)
-		return bytes.Equal(s, o)
+		o, err := codec.Decode(e)
+		return err == nil && bytes.Equal(s, o)
 	}
 
 	quick.Check(f, nil)
@@ -92,8 +92,8 @@ func testLengths(t *testing.T, codec Encoder) {
 		b = append(b, 0)
 
 		e := codec.Encode(b)
-		o := codec.Decode(e)
-		if !bytes.Equal(b, o) {
+		o, err := codec.Decode(e)
+		if err != nil || !bytes.Equal(b, o) {
 			t.Errorf("length test failed for 0x11 x %d...\n", i)
 		}
 

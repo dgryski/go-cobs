@@ -6,12 +6,16 @@
 //     https://tools.ietf.org/html/draft-ietf-pppext-cobs-00 (slightly incompatible encoding)
 package cobs
 
+import "errors"
+
 // TODO(dgryski): fix api to allow passing in decode buffer
 
 type Encoder interface {
 	Encode(src []byte) []byte
-	Decode(src []byte) []byte
+	Decode(src []byte) ([]byte, error)
 }
+
+var ErrCorrupt = errors.New("cobs: corrupt input")
 
 type encoder int
 
@@ -59,7 +63,7 @@ func (encoder) Encode(src []byte) (dst []byte) {
 	return dst
 }
 
-func (encoder) Decode(src []byte) (dst []byte) {
+func (encoder) Decode(src []byte) (dst []byte, err error) {
 
 	dst = make([]byte, 0, len(src))
 
@@ -67,6 +71,10 @@ func (encoder) Decode(src []byte) (dst []byte) {
 
 	for ptr < len(src) {
 		code := src[ptr]
+
+		if ptr+int(code) > len(src) {
+			return nil, ErrCorrupt
+		}
 
 		ptr++
 
@@ -80,10 +88,10 @@ func (encoder) Decode(src []byte) (dst []byte) {
 	}
 
 	if len(dst) == 0 {
-		return dst
+		return dst, nil
 	}
 
-	return dst[0 : len(dst)-1] // trim phantom zero
+	return dst[0 : len(dst)-1], nil // trim phantom zero
 }
 
 type zpe int
@@ -167,7 +175,7 @@ func (zpe) Encode(src []byte) (dst []byte) {
 	return dst
 }
 
-func (zpe) Decode(src []byte) (dst []byte) {
+func (zpe) Decode(src []byte) (dst []byte, err error) {
 
 	dst = make([]byte, 0, len(src))
 
@@ -176,14 +184,17 @@ func (zpe) Decode(src []byte) (dst []byte) {
 	for ptr < len(src) {
 		code := src[ptr]
 
-		ptr++
-
 		l := int(code)
 
 		if code > 0xE0 {
 			l = int(code & 0x1F)
 		}
 
+		if ptr+l > len(src) {
+			return nil, ErrCorrupt
+		}
+
+		ptr++
 		for i := 1; i < l; i++ {
 			dst = append(dst, src[ptr])
 			ptr++
@@ -202,20 +213,20 @@ func (zpe) Decode(src []byte) (dst []byte) {
 	}
 
 	if len(dst) == 0 {
-		return dst
+		return dst, nil
 	}
 
-	return dst[0 : len(dst)-1] // trim phantom zero
+	return dst[0 : len(dst)-1], nil // trim phantom zero
 }
 
 // Encode a byte slice with COBS
 func Encode(src []byte) []byte { return encoder(0).Encode(src) }
 
 // Decode a COBS-encoded byte slice
-func Decode(src []byte) []byte { return encoder(0).Decode(src) }
+func Decode(src []byte) ([]byte, error) { return encoder(0).Decode(src) }
 
 // Encode a byte slice with COBS/ZPE
 func EncodeZPE(src []byte) []byte { return zpe(0).Encode(src) }
 
 // Decode a COBS/ZPE-encoded byte slice
-func DecodeZPE(src []byte) []byte { return zpe(0).Decode(src) }
+func DecodeZPE(src []byte) ([]byte, error) { return zpe(0).Decode(src) }
