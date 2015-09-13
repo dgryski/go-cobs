@@ -10,11 +10,13 @@ import "errors"
 
 // TODO(dgryski): fix api to allow passing in decode buffer
 
+// Encoder encodes and decodes byte slices
 type Encoder interface {
 	Encode(src []byte) []byte
 	Decode(src []byte) ([]byte, error)
 }
 
+// ErrCorrupt indicates the input was corrupt
 var ErrCorrupt = errors.New("cobs: corrupt input")
 
 type encoder int
@@ -36,13 +38,13 @@ func (encoder) Encode(src []byte) (dst []byte) {
 
 	dst = make([]byte, 1, l)
 
-	code_ptr := 0
+	codePtr := 0
 	code := byte(0x01)
 
 	for _, b := range src {
 		if b == 0 {
-			dst[code_ptr] = code
-			code_ptr = len(dst)
+			dst[codePtr] = code
+			codePtr = len(dst)
 			dst = append(dst, 0)
 			code = byte(0x01)
 			continue
@@ -51,14 +53,14 @@ func (encoder) Encode(src []byte) (dst []byte) {
 		dst = append(dst, b)
 		code++
 		if code == 0xFF {
-			dst[code_ptr] = code
-			code_ptr = len(dst)
+			dst[codePtr] = code
+			codePtr = len(dst)
 			dst = append(dst, 0)
 			code = byte(0x01)
 		}
 	}
 
-	dst[code_ptr] = code
+	dst[codePtr] = code
 
 	return dst
 }
@@ -112,7 +114,7 @@ func (zpe) Encode(src []byte) (dst []byte) {
 
 	dst = make([]byte, 1, l)
 
-	code_ptr := 0
+	codePtr := 0
 	code := byte(0x01)
 
 	wantPair := false
@@ -123,16 +125,16 @@ func (zpe) Encode(src []byte) (dst []byte) {
 			if b == 0 {
 				// assert code < 31
 				code |= 0xE0
-				dst[code_ptr] = code
-				code_ptr = len(dst)
+				dst[codePtr] = code
+				codePtr = len(dst)
 				dst = append(dst, 0)
 				code = byte(0x01)
 				continue
 			}
 
 			// was looking for a pair of zeros but didn't find it -- encode as normal
-			dst[code_ptr] = code
-			code_ptr = len(dst)
+			dst[codePtr] = code
+			codePtr = len(dst)
 			dst = append(dst, 0)
 			code = byte(0x01)
 
@@ -149,8 +151,8 @@ func (zpe) Encode(src []byte) (dst []byte) {
 			}
 
 			// too long to encode with ZPE -- encode as normal
-			dst[code_ptr] = code
-			code_ptr = len(dst)
+			dst[codePtr] = code
+			codePtr = len(dst)
 			dst = append(dst, 0)
 			code = byte(0x01)
 			continue
@@ -159,8 +161,8 @@ func (zpe) Encode(src []byte) (dst []byte) {
 		dst = append(dst, b)
 		code++
 		if code == 0xE0 {
-			dst[code_ptr] = code
-			code_ptr = len(dst)
+			dst[codePtr] = code
+			codePtr = len(dst)
 			dst = append(dst, 0)
 			code = byte(0x01)
 		}
@@ -171,7 +173,7 @@ func (zpe) Encode(src []byte) (dst []byte) {
 		code = 0xE0 | code
 	}
 
-	dst[code_ptr] = code
+	dst[codePtr] = code
 	return dst
 }
 
@@ -219,14 +221,14 @@ func (zpe) Decode(src []byte) (dst []byte, err error) {
 	return dst[0 : len(dst)-1], nil // trim phantom zero
 }
 
-// Encode a byte slice with COBS
+// Encode encodes a byte slice with COBS
 func Encode(src []byte) []byte { return encoder(0).Encode(src) }
 
-// Decode a COBS-encoded byte slice
+// Decode decodes a COBS-encoded byte slice
 func Decode(src []byte) ([]byte, error) { return encoder(0).Decode(src) }
 
-// Encode a byte slice with COBS/ZPE
+// EncodeZPE encodes a byte slice with COBS/ZPE
 func EncodeZPE(src []byte) []byte { return zpe(0).Encode(src) }
 
-// Decode a COBS/ZPE-encoded byte slice
+// DecodeZPE decodes a COBS/ZPE-encoded byte slice
 func DecodeZPE(src []byte) ([]byte, error) { return zpe(0).Decode(src) }
