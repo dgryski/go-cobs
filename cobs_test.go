@@ -77,7 +77,9 @@ func testQuick(t *testing.T, codec Encoder) {
 		return err == nil && bytes.Equal(s, o)
 	}
 
-	quick.Check(f, nil)
+	if err := quick.Check(f, nil); err != nil {
+		t.Errorf("cobs roundtrip failed: %v\n", err)
+	}
 }
 
 func TestQuickCOBS(t *testing.T) {
