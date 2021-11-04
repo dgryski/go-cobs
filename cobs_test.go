@@ -3,7 +3,8 @@ package cobs
 import (
 	"bytes"
 	"testing"
-	"testing/quick"
+
+	"github.com/dgryski/go-tinyfuzz"
 )
 
 type inputOutput struct {
@@ -77,7 +78,7 @@ func testQuick(t *testing.T, codec Encoder) {
 		return err == nil && bytes.Equal(s, o)
 	}
 
-	if err := quick.Check(f, nil); err != nil {
+	if err := tinyfuzz.Fuzz(f, nil); err != nil {
 		t.Errorf("cobs roundtrip failed: %v\n", err)
 	}
 }
